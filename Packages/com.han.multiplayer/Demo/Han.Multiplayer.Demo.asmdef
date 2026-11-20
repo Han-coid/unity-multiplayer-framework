@@ -1,0 +1,16 @@
+{
+  "name": "Han.Multiplayer.Demo",
+  "rootNamespace": "Han.Multiplayer.Demo",
+  "references": [
+    "Han.Multiplayer",
+    "Han.Multiplayer.Relay",
+    "Han.Multiplayer.Diagnostics",
+    "Han.Multiplayer.Lobby",
+    "Han.Multiplayer.UI",
+    "Unity.Netcode.Runtime",
+    "Unity.Collections",
+    "Han.Multiplayer.Recovery",
+    "Han.Multiplayer.Security",
+    "Han.Multiplayer.Prediction"
+  ]
+}

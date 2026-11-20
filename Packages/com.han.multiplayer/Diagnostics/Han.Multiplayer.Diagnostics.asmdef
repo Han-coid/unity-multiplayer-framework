@@ -1,0 +1,5 @@
+{
+  "name": "Han.Multiplayer.Diagnostics",
+  "rootNamespace": "Han.Multiplayer.Diagnostics",
+  "references": ["Han.Multiplayer", "Han.Multiplayer.UI", "Unity.Netcode.Runtime", "Unity.Networking.Transport", "Unity.Collections"]
+}

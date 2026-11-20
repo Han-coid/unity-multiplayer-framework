@@ -1,0 +1,5 @@
+{
+  "name": "Han.Multiplayer.UI",
+  "rootNamespace": "Han.Multiplayer.UI",
+  "references": ["Han.Multiplayer"]
+}

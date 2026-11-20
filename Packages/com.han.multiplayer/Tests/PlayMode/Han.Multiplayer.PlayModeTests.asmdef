@@ -1,0 +1,17 @@
+{
+  "name": "Han.Multiplayer.PlayModeTests",
+  "references": [
+    "Han.Multiplayer",
+    "Han.Multiplayer.Diagnostics",
+    "Han.Multiplayer.Lobby",
+    "Unity.Collections",
+    "Unity.Netcode.Runtime",
+    "Unity.Networking.Transport",
+    "Han.Multiplayer.Recovery",
+    "Han.Multiplayer.Security",
+    "Han.Multiplayer.Prediction"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

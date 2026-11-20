@@ -1,0 +1,5 @@
+{
+  "name": "Han.Multiplayer.Prediction",
+  "rootNamespace": "Han.Multiplayer.Prediction",
+  "references": ["Han.Multiplayer", "Unity.Netcode.Runtime"]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Han.Multiplayer.Security",
+  "rootNamespace": "Han.Multiplayer.Security",
+  "references": ["Han.Multiplayer", "Unity.Netcode.Runtime", "Unity.Collections"]
+}

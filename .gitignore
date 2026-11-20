@@ -1,0 +1,36 @@
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+Builds/
+TestResults/
+.verification/
+.vs/
+.idea/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.pidb
+*.booproj
+*.unitypackage
+crash.dmp
+
+# 本地凭证与签名文件不进入版本库；示例配置可以提交。
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# 本地工具设置与操作系统生成文件。
+.codex/
+.agents/
+.DS_Store
+Thumbs.db

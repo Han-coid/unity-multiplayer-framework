@@ -1,0 +1,44 @@
+# systemd 服务模板：需要手动准备账号、安装目录并安装此文件后才会生效。
+# 将模板保存在项目中或打入压缩包，不会自动部署或启动服务。
+[Unit]
+Description=Han Multiplayer Unity game server
+# 请求网络在线目标并安排启动顺序；这不保证外部网络或游戏端口已可用。
+Wants=network-online.target
+After=network-online.target
+# 限制六十秒内的启动次数，防止错误配置导致持续快速重启。
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+# simple 表示进程启动后即视为服务启动，不代表游戏已经完成初始化。
+Type=simple
+# 使用预先创建的专用低权限账号；不建议以 root 运行游戏逻辑。
+User=han-game
+Group=han-game
+# 此目录需包含完整构建产物和启动脚本。
+WorkingDirectory=/opt/han-multiplayer
+# 为 Unity 运行时提供可写的 HOME；端口和人数可通过 systemctl edit 覆盖。
+Environment=HOME=/var/lib/han-multiplayer
+Environment=SERVER_PORT=7777
+Environment=MAX_PLAYERS=8
+# systemd 创建 /var/lib/han-multiplayer 并将其分配给上面的服务账号。
+StateDirectory=han-multiplayer
+# /bin/sh 可读取没有执行位的启动脚本，但脚本调用的游戏二进制仍需执行权限。
+ExecStart=/bin/sh /opt/han-multiplayer/run-server.sh
+# 异常退出后等待五秒重启；正常退出不自动重启。
+Restart=on-failure
+RestartSec=5
+# 给 Unity 三十秒处理停止信号，超时后交由 systemd 强制结束。
+TimeoutStopSec=30
+# 标准输出和错误统一进入 journal，可使用 journalctl -u han-multiplayer 查看。
+StandardOutput=journal
+StandardError=journal
+# 禁止获得额外权限，隔离临时目录，并将系统目录设为只读。
+# ProtectSystem=full 不会将整个文件系统设为只读，状态目录仍可写。
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+# 安装后执行 systemctl enable 才会设置为随多用户模式启动。
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+{
+  "name": "Han.Multiplayer.EditorTests",
+  "references": [
+    "Han.Multiplayer",
+    "Han.Multiplayer.Diagnostics",
+    "Han.Multiplayer.Lobby",
+    "Unity.Collections",
+    "Han.Multiplayer.Recovery",
+    "Han.Multiplayer.Security",
+    "Han.Multiplayer.Prediction",
+    "Unity.Netcode.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

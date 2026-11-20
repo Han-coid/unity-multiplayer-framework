@@ -1,0 +1,9 @@
+{
+  "name": "Han.Multiplayer",
+  "rootNamespace": "Han.Multiplayer",
+  "references": [
+    "Unity.Netcode.Runtime",
+    "Unity.Networking.Transport",
+    "Unity.Collections"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Han.Multiplayer.Recovery",
+  "rootNamespace": "Han.Multiplayer.Recovery",
+  "references": ["Han.Multiplayer", "Unity.Netcode.Runtime", "Unity.Collections"]
+}

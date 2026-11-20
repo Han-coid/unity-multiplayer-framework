@@ -1,0 +1,5 @@
+{
+  "name": "Han.Multiplayer.Lobby",
+  "rootNamespace": "Han.Multiplayer.Lobby",
+  "references": ["Han.Multiplayer", "Unity.Netcode.Runtime", "Unity.Collections"]
+}
