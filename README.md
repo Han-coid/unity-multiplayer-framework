@@ -1,109 +1,189 @@
-# Unity 通用联机框架
+# Han Multiplayer Framework
 
-这是一个 **C# 编写的 Unity 联机基础包 + 可运行示例项目**。目标是让多个游戏项目复用连接流程，而不是让任意单机游戏在导入后自动变成联机游戏。
+**面向 Unity 的模块化 C# 联机基础框架，提供可复用 UPM 包与可运行示例。**
 
-## 先从哪里开始
+基于 Netcode for GameObjects 和 Unity Transport，支持局域网、IP 直连与 Relay 房间码，并提供可选大厅、断线恢复、账号准入、网络诊断及基础移动预测模块。
 
-先看 [当前能力、模块安装与验收清单](docs/项目能力与验收清单.md)：区分完整示例与只导入 UPM 包、列出各模块必须手动安装的组件，以及从双窗口到跨平台的验收步骤。
+适合希望从可运行示例开始，为多个 Unity 项目复用连接与同步基础设施的开发者。接入自己的游戏仍需要定义网络对象、同步状态和服务器判定逻辑。
 
-1. 使用 **Unity Hub → Add / 从磁盘添加项目**，选择当前目录。基准编辑器为 **Unity 6000.3.26f1**。
-2. 等待 Package Manager 下载依赖。首次导入需要联网。
-3. 打开 `Assets/MultiplayerDemo/MultiplayerDemo.unity`。若未生成，使用菜单 **Tools → Han Multiplayer → Create or Open Demo**。
-4. 点击 Play，再点击 **创建局域网主机**。这一步不需要 Unity 云项目或服务器。
-5. 使用 **Tools → Han Multiplayer → Build Windows Demo** 构建第二个客户端。在客户端里输入 `127.0.0.1`，点击 **通过 IP 加入**。
-6. 两端移动角色并切换 准备，观察对方位置、准备状态是否同步。再尝试断开和重新加入。
+**当前版本：`0.8.0` · 验证基准：Unity `6000.3.26f1` · 状态：早期开发**
 
-示例连接、大厅、角色控制和诊断界面现已使用简体中文。Windows 自动选择已安装的中文字体；跨平台发布可提供项目字体，见中文界面说明。键盘控制依赖旧 Input Manager；只有新 Input System 的项目可先使用屏幕方向按钮，再将自己的输入传给玩法层。
+[快速开始](#快速开始) · [安装与接入](#安装与接入) · [文档](#文档) · [贡献](#贡献) · [更新记录](Packages/com.han.multiplayer/CHANGELOG.md) · [Issues](https://github.com/Han-coid/unity-multiplayer-framework/issues)
 
-## 为什么选 C#，而不是 Python
+> 仓库目前公开源码，但尚未添加开源许可证。授权状态见[许可证](#许可证)。
 
-- Unity 的 `GameObject`、`MonoBehaviour`、场景、物理和 Netcode API 都可以由 C# 直接调用。
-- 同一套 C# 游戏逻辑可随 Unity 构建到不同平台。独立游戏服务器也可使用 Unity 的 C# 逻辑。
-- Python 适合以后另行开发数据工具、管理后台或部分 Web 服务。第一阶段没有必要引入第二种语言和另一套游戏运行时。
+## 功能概览
 
-## 已实现的范围
-
-| 功能 | 方式 |
+| 模块 | 已实现能力 |
 | --- | --- |
-| 同一电脑 / 局域网 | IP + UDP 端口，玩家主机 Host |
-| 互联网房间码 | Unity Authentication + Relay；默认 DTLS，可选 WSS |
-| 独立服务器 | 无本地玩家的 Server 模式；已构建 Linux x86_64 专用服务端，客户端按 IP 加入 |
-| 连接生命周期 | 状态事件、超时、取消、停止后重建、错误原因 |
-| 入房控制 | 游戏 ID / 协议版本校验、人数上限、并发名额预留 |
-| 玩法示例 | 玩家自动生成、服务器计算移动、NetworkTransform 同步、准备 状态同步 |
-| 基础移动预测 | 可选本地预测、服务器校正、未确认输入重放、显示平滑、静态墙体碰撞与异常网络重新定基 |
-| 跳跃与重力 | 单次跳跃、地面检测、平台落地/离边下落、碰顶、终端速度与完整运动状态重放 |
-| 场景切换入口 | 主机通过 NGO 同步加载 Build 列表中的场景 |
-| 项目复用 | UPM 包、独立程序集、可替换的 Relay 适配接口 |
-| 网络诊断 | 各远端 RTT、Driver 聚合收发流量/计数、状态日志和本地 JSON 报告 |
-| 开发弱网测试 | 延迟、抖动、双向独立丢包、预设、自定义及短时断网自动恢复 |
-| 时序优化与响应诊断 | 原版/对齐 30 Hz、响应 60 Hz，实际发送频率、应用确认和起步响应；双进程对比脚本 |
-| 账号准入与请求校验 | 可选凭证供应器/验证器、HTTPS 后端适配、账号与恢复绑定、重复登录拒绝、权限/参数/阶段/限流/序号检查 |
-| 断线恢复 | 可选模块、随机恢复凭证、自动退避/取消、离线席位、服务器角色快照和大厅重绑定 |
-| 通用大厅 | 服务器同步名单/昵称/准备、房主权限、人数规则、进行中锁房、加载屏障、返回大厅及踢人 |
+| 连接与会话 | Host / Client / Dedicated Server、超时、取消、状态事件、游戏 ID / 协议版本 / 人数校验 |
+| 网络接入 | 局域网与公网 IP + UDP；Unity Authentication + Relay 房间码，支持 DTLS / WSS |
+| 通用大厅 | 名单、昵称、准备、房主权限、人数规则、进行中锁房、场景加载屏障、返回大厅与踢人 |
+| 断线恢复 | 恢复凭证、自动退避重试、离线席位保留、角色快照与大厅身份重绑定 |
+| 账号与请求校验 | 可插拔凭证供应器和账号验证器、HTTPS 后端适配、权限 / 参数 / 阶段 / 大小 / 限流 / 序号检查 |
+| 移动与跳跃预测 | 客户端预测、服务器校正、输入重放、显示平滑、静态箱体碰撞、重力、跳跃、平台落地与碰顶 |
+| 网络诊断 | RTT、传输层聚合收发统计、JSON 报告与响应时序指标 |
+| 开发弱网测试 | 延迟、抖动、双向丢包、预设与短时断网注入 |
+| 示例与工具 | 中文界面、基础联机 / 大厅示例、Windows 与 Linux 服务端构建入口、多进程验收脚本 |
 
-**局域网是同一网络中的多设备联机，不是同屏 / 分屏多人。** 本版按 IP 加入，没有自动搜索局域网房间。
+大厅、恢复、安全、诊断和预测模块按需接入，通用连接层不要求使用 FPS 玩法层或示例角色。LAN 运行不需要云账号；Relay 接入需配置自己的 Unity 云项目。云服务 SDK 仍作为包依赖安装。
 
-跨地域连接需要 Relay，或有公网可达地址的游戏服务器。Relay 负责转发数据，游戏仍由玩家主机运行；主机退出后房间结束。独立服务器需要自行准备服务器和网络端口。
+## 环境与平台
 
-## 分层与复用
+| 项目 | 基准版本或要求 |
+| --- | --- |
+| Unity Editor | `6000.3.26f1`；包声明最低 `6000.0`，不代表所有 Unity 6 版本均已验证 |
+| Netcode for GameObjects | `2.13.3` |
+| Unity Transport | `2.7.4` |
+| Multiplayer Services | `2.3.3` |
+| 首次导入 | 联网下载 Package Manager 依赖 |
+| 命令行验收 | Windows、PowerShell、可正常运行的 Unity 编辑器与对应构建模块 |
 
-```text
-你的游戏：角色、战斗、背包、UI、输入
-             │
-    MultiplayerSession（C# 连接生命周期）
-         ├── IP 直连：局域网 / 公网服务器
-         └── IRelayProvider → UnityRelayProvider
-             │
-    Netcode for GameObjects → Unity Transport
+完整依赖见 [package.json](Packages/com.han.multiplayer/package.json)，示例工程依赖见 [manifest.json](Packages/manifest.json)。
+
+| 平台 / 接入方式 | 当前验证状态 |
+| --- | --- |
+| Windows 本地联机 | 已完成编辑器、构建与多进程测试，详见[验证记录](docs/验证记录.md) |
+| Linux x86_64 Dedicated Server | 已完成本地构建与打包检查；尚未完成 Linux 运行验收 |
+| macOS / Linux 客户端 | 尚未构建与实机验证 |
+| Android / iOS | 尚未完成实机验证；需适配触控、字体、网络权限与后台切换 |
+| WebGL | 设计入口为 Relay WSS；拒绝 UDP 直连，尚未完成浏览器构建与联调 |
+| Relay 跨地域联机 | 已实现适配，尚未完成真实云项目端到端验收 |
+
+跨平台互通需要游戏 ID、协议版本、网络预制体与玩法配置匹配。当前示例协议为 **6**，更新后应重新构建所有参与端。更多说明见[兼容性与架构](docs/兼容性与架构.md)。
+
+## 快速开始
+
+### 1. 获取项目
+
+```bash
+git clone https://github.com/Han-coid/unity-multiplayer-framework.git
+cd unity-multiplayer-framework
 ```
 
-- `Packages/com.han.multiplayer/Runtime`：会话状态、参数校验、连接与准入策略。
-- `Runtime/Relay`：Unity 云服务适配，只有选择 Relay 时才初始化云服务。
-- `Security`：可插拔账号准入、服务器请求校验和开发鉴权验收。
-- `Recovery`：可选恢复凭证、自动重试、服务器角色快照。
-- `Lobby`：可选大厅与场景屏障。
-- `Diagnostics`：可选网络诊断、时序测量与弱网注入。
-- `Prediction`：可选移动/跳跃预测与服务器校正，独立于 FPS 和其他业务模块。
-- `Demo`：示例玩法及界面；自己的游戏无需使用它。
-- `Editor`：示例场景、Windows 客户端和 Linux 专用服务端构建工具。
-- `Server~`：Linux 启动脚本、systemd 服务模板和随包说明。
-- `Tests`：准入策略、取消竞态、会话生命周期测试。
+在 Unity Hub 中选择 **Add / 从磁盘添加项目**，打开仓库根目录，使用 Unity `6000.3.26f1`，等待依赖导入和脚本编译完成。
 
-在另一个项目中打开 **Window → Package Manager → + → Install package from disk**，选择本目录下 `Packages/com.han.multiplayer/package.json`。也可将整个包目录复制到新项目的 `Packages` 中，保留所有 `.meta` 文件。
+仓库不包含 `Library`、`Builds` 或测试日志；客户端与服务端程序需要在本地构建。
 
-依赖 SDK 仍随包安装；“LAN 不需要云服务”指运行时不需要云账号和云请求，不是完全不安装云 SDK。核心程序集不引用 Unity 云服务程序集，后续可以拆成独立的可选包。
+### 2. 在同一台电脑上运行两个玩家
 
-第一次接入请按 [从零接入教程](docs/接入教程.md) 操作：第 2 节先跑两个窗口，第 3～5 节完成包导入、Inspector 配置和 UI 接入，第 6～7 节接入玩法与场景切换，第 8～11 节处理局域网、Relay、Linux 和跨平台构建。教程包含可复制的连接 UI、准备状态和服务端启动脚本，以及逐项验收和错误排查表。
+1. 打开 `Assets/MultiplayerDemo/MultiplayerDemo.unity`；也可使用 **Tools → Han Multiplayer → Create or Open Demo**。
+2. 使用 **Tools → Han Multiplayer → Build Windows Demo**，生成 `Builds/Windows/MultiplayerDemo.exe`。
+3. 在编辑器中点击 Play，保持端口 `7777`，点击 **创建局域网主机**。
+4. 启动构建出的程序，服务器 IP 填 `127.0.0.1`，端口填 `7777`，点击 **通过 IP 加入**。
+5. 分别聚焦两个窗口，用 WASD / 方向键移动、空格跳跃，确认两端能看到对方的移动和准备状态。
 
-同一份完整教程也保存在 `Packages/com.han.multiplayer/Documentation~/接入教程.md`，单独复制包到其他项目后仍可阅读。平台边界见 [兼容性与架构](docs/兼容性与架构.md)，测试记录见 [验证记录](docs/验证记录.md)。
+本步骤不需要部署服务器或配置 Unity 云服务。示例键盘输入依赖旧 Input Manager；使用其他输入系统时，可先使用屏幕按钮，或将输入接入预测模块。
 
-网络工具的安装、参数口径、命令行和一键验证见 [网络诊断与弱网测试](docs/网络诊断与弱网测试.md)。示例开发构建默认显示可拖动面板，故障注入初始为关闭。工具位于独立的 `Han.Multiplayer.Diagnostics` 程序集，通用连接层不依赖它。
+### 3. 测试局域网或大厅
 
-可选大厅模块见 [通用大厅接入与人工验收](docs/通用大厅接入与验收.md)。菜单 **Create or Open Lobby Demo** 打开独立入口场景；**Build Windows Lobby Demo** 生成 `Builds/LobbyWindows/LobbyDemo.exe`。运行 `scripts/Start-LobbyAcceptance.ps1` 可打开 Host / Guest 两个交互窗口；`scripts/LobbyTest.ps1` 运行自动化大厅检查。
+- **不同设备**：连接同一局域网，客户端填写主机的局域网 IPv4 地址与 UDP 端口 `7777`；确认主机防火墙允许游戏通信。`127.0.0.1` 仅用于连接本机。
+- **大厅示例**：使用 **Tools → Han Multiplayer → Create or Open Lobby Demo**，从 `Entry` 场景启动；通过 **Build Windows Lobby Demo** 构建对应客户端。所有玩家准备后，由房主开始游戏。
+- **跨地域**：按教程配置 Relay，或连接具有公网可达地址的独立服务器。Relay 由玩家主机运行游戏逻辑，主机退出后房间结束。
 
-Linux 服务器使用方法见 [Linux 服务端构建与部署手册](docs/Linux服务器部署.md)。当前 Linux 包已经在本地构建完成；按用户要求，尚未上传、安装或启动远端服务。构建脚本和重新打包脚本都只操作本地文件。
+完整操作与故障排查见[从零接入教程](docs/接入教程.md)和[通用大厅接入与验收](docs/通用大厅接入与验收.md)。
 
-新的 [同步时序与延迟优化](docs/同步时序与延迟优化.md) 说明两窗口操作、指标口径、配置切换和自动对比。示例默认使用 60 Hz；核心连接层仍默认 30 Hz。示例协议版本已升为 6，请重建两端程序。Linux 基础示例服务端仅在本地构建打包，尚未部署或执行 Linux 运行验收。
+## 安装与接入
 
-[断线重连与状态恢复](docs/断线重连与状态恢复.md) 提供两个窗口的体验步骤、Inspector 配置、业务快照接口和自动测试。示例默认启用恢复，自己的项目可独立安装。仅覆盖同一服务器和客户端进程仍存活的会话；主动退出会撤销恢复资格。
+只复用框架时，无需将整个示例工程复制到自己的项目。
 
-[账号准入与请求校验](docs/账号准入与请求校验.md) 包含开发验收、自己的登录 SDK/后端适配和请求入口接入步骤。示例默认 LAN 无账号模式；`scripts/Start-LobbyAcceptance.ps1 -DevelopmentAccounts` 打开开发账号验收。正式账号服务需要配置自己的验证器或 HTTPS 后端，开发模拟在正式构建强制禁用。
+1. 克隆本仓库后，在目标项目打开 **Window → Package Manager**。
+2. 点击 **+ → Install package from disk**，选择本仓库的 `Packages/com.han.multiplayer/package.json`。
+3. 按[模块安装与验收清单](docs/项目能力与验收清单.md)配置连接组件、网络预制体及所需的可选模块。
 
-## 当前边界
+也可以将完整的 `Packages/com.han.multiplayer` 目录复制到目标项目的 `Packages` 下，保留所有 `.meta` 文件。通过磁盘引用时，请保留原包目录，避免移动后引用失效。
 
-这是 `0.8.0` 基础版本。[基础移动预测与服务器校正](docs/基础移动预测与服务器校正.md) 已接入示例，支持独立关闭和同协议 A/B 对比。[跳跃、重力与地面检测](docs/跳跃重力与地面检测.md) 说明空格/触屏跳跃、静态平台和顶板、速度校正及空中恢复。仍不包含坡面、自动台阶、动态物理回滚或射击命中回溯。
+**安装 UPM 包不会自动创建业务场景、接入账号后台或同步任意 GameObject。** 仓库根目录中的 `Assets` 示例场景和 `scripts` 验收脚本也不会随单独的 UPM 包导入；包内提供编辑器示例生成入口与 `Documentation~` 文档。
 
-未实现房间列表、匹配、主机迁移、账号注册/登录后台、聊天和进程重启后的存档恢复。主动退出再加入会创建新玩家，意外断线可在保留期内恢复；示例尚不具备完整竞技游戏移动和反作弊系统。
+## 项目结构
 
-它可以作为多人游戏的连接与同步起点。把已有游戏改为联机仍需要明确哪些对象联网、哪些状态同步，以及哪些操作由服务器判定。建议先用本例完成两人小场景，再接入你的玩法。
+```text
+Assets/                         # 基础联机与大厅示例场景、预制体
+Packages/com.han.multiplayer/
+├── Runtime/                    # 会话核心；Relay/ 为云服务适配
+├── Lobby/                      # 大厅与场景加载屏障
+├── Recovery/                   # 重连与状态恢复
+├── Security/                   # 账号准入与请求校验
+├── Prediction/                 # 移动、跳跃预测与服务器校正
+├── Diagnostics/                # 网络诊断与开发弱网测试
+├── Demo/                       # 示例玩法与界面
+├── UI/                         # 中文界面辅助
+├── Editor/                     # 示例生成与构建工具
+├── Tests/                      # EditMode / PlayMode 测试
+├── Server~/                    # Linux 启动与 systemd 模板
+└── Documentation~/             # 可随包携带的文档
+ProjectSettings/                # Unity 工程设置
+docs/                           # 文档主副本
+scripts/                        # 本地构建与验收脚本
+```
 
-## 官方参考
+连接层通过 NGO / Unity Transport 处理网络通信；玩法层负责输入与状态语义，服务器负责权威判定。预测模块可独立启用，不绑定特定游戏类型。
 
-- [Netcode for GameObjects](https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@2.13/manual/index.html)
-- [Relay 与 NGO 手动接入](https://docs.unity.com/en-us/mps-sdk/tutorials/relay-and-ngo)
-- [Relay 连接流程](https://docs.unity.com/en-us/mps-sdk/advanced-config/connection-flow)
+## 文档
 
-具体的计费、地区可用性、平台账号要求以服务提供方当前信息为准。本项目没有关联你的 Unity 云项目，也没有创建或购买云资源。
+| 主题 | 文档 |
+| --- | --- |
+| 能力总览与模块配置 | [项目能力与验收清单](docs/项目能力与验收清单.md) |
+| 首次接入与故障排查 | [接入教程](docs/接入教程.md) |
+| 平台与依赖边界 | [兼容性与架构](docs/兼容性与架构.md) |
+| 大厅与场景流程 | [通用大厅接入与验收](docs/通用大厅接入与验收.md) |
+| 意外断线与业务快照 | [断线重连与状态恢复](docs/断线重连与状态恢复.md) |
+| 登录后端与服务器校验 | [账号准入与请求校验](docs/账号准入与请求校验.md) |
+| 移动预测与输入重放 | [基础移动预测与服务器校正](docs/基础移动预测与服务器校正.md) |
+| 垂直运动与静态碰撞 | [跳跃重力与地面检测](docs/跳跃重力与地面检测.md) |
+| 网络指标与故障注入 | [网络诊断与弱网测试](docs/网络诊断与弱网测试.md) |
+| Tick 与延迟口径 | [同步时序与延迟优化](docs/同步时序与延迟优化.md) |
+| 服务端构建与部署 | [Linux 服务器部署](docs/Linux服务器部署.md) |
+| 中文字体与界面 | [中文界面与字体](docs/中文界面与字体.md) |
+| 历史验证结果 | [验证记录](docs/验证记录.md) |
+| 版本变更 | [CHANGELOG](Packages/com.han.multiplayer/CHANGELOG.md) |
 
-中文字体、显示层错误翻译与跨平台字体资源配置见 [中文界面与字体](docs/中文界面与字体.md)。
+## 构建与测试
+
+Windows 客户端使用快速开始中的构建菜单。Linux 服务端使用 **Tools → Han Multiplayer → Build Linux Dedicated Server (x64)**，需安装对应构建模块；当前入口构建基础示例，不包含大厅场景。其他平台或自己的场景请在 **File → Build Profiles** 中配置。
+
+在 Windows 上，先关闭占用本项目的 Unity 编辑器，再从仓库根目录运行：
+
+```powershell
+# 运行 EditMode / PlayMode 测试、构建 Windows 基础示例并执行联机冒烟检查。
+.\scripts\Verify.ps1 -UnityPath 'C:\Program Files\Unity\Hub\Editor\6000.3.26f1\Editor\Unity.exe'
+
+# 基础示例构建成功后，按改动范围运行专项验收。
+.\scripts\PredictionTest.ps1
+.\scripts\JumpTest.ps1
+.\scripts\SecurityTest.ps1
+```
+
+`Verify.ps1` 不会自动执行所有专项测试，也不构建大厅示例。大厅、恢复、弱网和时序测试的前置条件见对应文档。日志与报告分别写入 `Logs/` 和 `TestResults/`，不会提交到 Git。
+
+`0.8.0` 的历史本地记录为 **87 项 EditMode + 24 项 PlayMode 测试通过**，另有多进程专项验收。这是特定环境下的结果，不代表持续集成状态或所有平台均已通过；原始生成报告未随仓库发布。复现条件和范围见[验证记录](docs/验证记录.md)。
+
+## 已知限制与后续方向
+
+- 当前为基础框架，尚未实现房间搜索、自动匹配、主机迁移、聊天与账号注册 / 登录后台。
+- 恢复依赖仍存活的服务器和客户端进程及有效席位保留期；不支持进程重启后的存档恢复。主动退出会撤销恢复资格。
+- 预测使用显式静态箱体模型，不包含坡面、自动台阶、移动平台、玩家间物理碰撞、动态物理回滚或射击命中回溯。
+- 请求校验需在对应入口接入，不等同于完整反作弊系统。开发模拟账号验证器不能作为正式账号后端。
+- 手机示例按钮尚未替代正式触控摇杆、多点触控与安全区适配；中文字体需按目标平台打包。
+
+后续可围绕跨平台实机验收、Relay 联调、移动端输入、兴趣管理与玩法扩展逐步完善。以上为待完善方向，不代表已实现能力或发布日期承诺。
+
+## 贡献
+
+欢迎通过 [Issues](https://github.com/Han-coid/unity-multiplayer-framework/issues) 报告问题、讨论功能或提出文档改进。
+
+报告问题时，请提供 Unity / 框架版本、操作系统、连接方式（LAN / 直连 / Relay）、最小复现步骤、预期与实际结果，以及经过脱敏的相关日志。请勿在公开 Issue 或 PR 中提交密码、访问令牌、恢复凭证或私钥。
+
+提交 Pull Request 前，请：
+
+1. 对较大的接口或架构变更先创建 Issue，说明使用场景与方案。
+2. 将改动保持在明确范围内，沿用现有代码风格，为新增或修改的代码补充中文注释。
+3. 根据改动运行相关测试，在 PR 中说明验证环境、结果及未验证范围；纯文档修改可只检查链接和内容一致性。
+4. 修改接入方式或行为时同步更新文档；`docs/` 中的文档与 `Documentation~/` 对应副本应保持一致。
+5. 保留 Unity `.meta` 文件，不提交缓存、构建产物、日志或本地凭证。
+
+## 许可证
+
+**本仓库尚未添加 `LICENSE` 文件，开源许可证待维护者确定。** 当前 README 不声明 MIT、Apache-2.0 或其他开源授权，也不作商业使用授权承诺。
+
+Unity、依赖 SDK 及另行引入的字体或素材应分别遵守其对应许可。
