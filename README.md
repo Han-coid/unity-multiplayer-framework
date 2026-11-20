@@ -10,7 +10,7 @@
 
 [快速开始](#快速开始) · [安装与接入](#安装与接入) · [文档](#文档) · [贡献](#贡献) · [更新记录](Packages/com.han.multiplayer/CHANGELOG.md) · [Issues](https://github.com/Han-coid/unity-multiplayer-framework/issues)
 
-> 仓库目前公开源码，但尚未添加开源许可证。授权状态见[许可证](#许可证)。
+**开源许可证** · [MIT](LICENSE)
 
 ## 功能概览
 
@@ -184,6 +184,6 @@ Windows 客户端使用快速开始中的构建菜单。Linux 服务端使用 **
 
 ## 许可证
 
-**本仓库尚未添加 `LICENSE` 文件，开源许可证待维护者确定。** 当前 README 不声明 MIT、Apache-2.0 或其他开源授权，也不作商业使用授权承诺。
+本项目以 MIT 许可证发布。可以使用、修改和分发框架，包括将其用于闭源或商业项目。分发框架的副本或实质性部分时，请保留版权声明和许可声明。具体条款见 [LICENSE](LICENSE)。
 
-Unity、依赖 SDK 及另行引入的字体或素材应分别遵守其对应许可。
+单独分发 UPM 包时，请随包保留 [LICENSE.md](Packages/com.han.multiplayer/LICENSE.md)。Unity、依赖 SDK 及另行引入的第三方字体和素材各自适用其原有许可。
